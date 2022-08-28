@@ -82,3 +82,17 @@
 - Scale your data tier by sharding
 - Split tiers into individual services
 - Monitor your system and use automation tools
+
+# Back-of-the-envelope Estimation
+
+- Memory is fast but the disk is slow.
+- Avoid disk seeks if possible.
+- Simple compression algorithms are fast.
+- Compress data before sending it over the internet if possible.
+- Data centers are usually in different regions, and it takes time to send data between them.
+
+## Back-of-the-envelope estimation is all about the process. Solving the problem is more important than obtaining results.
+
+- Rounding and Approximation
+- Write down your assumptions
+- Label your units.
