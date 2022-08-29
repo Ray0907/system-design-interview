@@ -96,3 +96,11 @@
 - Rounding and Approximation
 - Write down your assumptions
 - Label your units.
+
+# A Framework For System Design Interviews
+
+- A 4-step process for effective system design interview
+  - Step 1 - Understand the problem and establish design scope
+  - Step 2 - Propose high-level design and get buy-in
+  - Step 3 - Design deep dive
+  - Step 4 - Wrap up
