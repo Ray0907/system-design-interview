@@ -100,7 +100,68 @@
 # A Framework For System Design Interviews
 
 - A 4-step process for effective system design interview
+
   - Step 1 - Understand the problem and establish design scope
   - Step 2 - Propose high-level design and get buy-in
   - Step 3 - Design deep dive
   - Step 4 - Wrap up
+
+  # Design A Rate Limiter
+
+  ## Algorithms for rate limiting
+
+  - Token bucket
+    - A token bucket is a container that has pre-defined capacity. Tokens are put in the bucket at preset rates periodically. Once the bucket is full, no more tokens are added.
+    - The token bucket algorithm takes two parameters
+      - Bucket size: the maximum number of tokens allowed in the bucket
+      - Refill rate: number of tokens put into the bucket every second
+      - Pros
+        - The algorithm is easy to implement
+        - Memory efficient
+        - Token bucket allows a burst of traffic for short periods. A request can go through as long as there are tokens left.
+      - Cons
+        - Two parameters in the algorithm are bucket size and token refill rate. However, it might be challenging to tune them properly.
+  - Leaking bucket
+
+    - Leaking bucket algorithm takes the following two parameters
+      - Bucket size: it is equal to the queue size. The queue holds the requests to be processed at a fixed rate.
+      - Outflow rate: it defines how many requests can be processed at a fixed rate, usually in seconds.
+      - Pros
+        - Memory efficient given the limited queue size
+        - Requests are processed at a fixed rate therefore it is suitable for use cases that a stable outflow rate is needed
+      - Cons
+        - A burst of traffic fills up the queue with old requests, and if they are not processed in time, recent requests will be rate limited
+      - There are two parameters in the algorithm. It might not be easy to tune them properly
+
+  - Fixed window counter
+    - The algorithm divides the timeline into fix-sized time windows and assign a counter for each window
+    - Each request increments the counter by one
+    - Once the counter reaches the pre-defined threshold, new requests are dropped until a new time window starts
+    - Pros
+      - Memory efficient
+      - Easy to understand
+      - Resetting available quota at the end of a unit time window fits certain use cases
+    - Cons
+      - pike in traffic at the edges of a window could cause more requests than the allowed quota to go through
+  - Sliding window log
+
+    - the fixed window counter algorithm has a major issue: it allows more requests to go through at the edges of a window. The sliding window log algorithm fixes the issue
+    - Pros
+      - Rate limiting implemented by this algorithm is very accurate. In any rolling window, requests will not exceed the rate limit
+    - Cons
+      - The algorithm consumes a lot of memory because even if a request is rejected, its timestamp might still be stored in memory.
+
+  - Sliding window counter
+    - Pros
+      - It smooths out spikes in traffic because the rate is based on the average rate of the previous window
+      - Memory efficient
+    - Cons
+      - It only works for not-so-strict look back window. It is an approximation of the actual rate because it assumes requests in the previous window are evenly distributed.
+
+## Rate limiter in a distributed environment
+
+- Race condition
+  - Locks are the most obvious solution for solving race condition. However, locks will significantly slow down the system. Two strategies are commonly used to solve the problem: Lua script and sorted sets data structure in Redis
+- Synchronization issue
+  - When multiple rate limiter servers are used, synchronization is required. For example, on the left side of Figure 15, client 1 sends requests to rate limiter 1, and client 2 sends requests to rate limiter 2. As the web tier is stateless, clients can send requests to a different rate limiter as shown on the right side of Figure 15. If no synchronization happens, rate limiter 1 does not contain any data about client 2. Thus, the rate limiter cannot work properly
+  - One possible solution is to use sticky sessions that allow a client to send traffic to the same rate limiter. This solution is not advisable because it is neither scalable nor flexible. A better approach is to use centralized data stores like Redis.
