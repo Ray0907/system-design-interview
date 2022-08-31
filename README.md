@@ -165,3 +165,15 @@
 - Synchronization issue
   - When multiple rate limiter servers are used, synchronization is required. For example, on the left side of Figure 15, client 1 sends requests to rate limiter 1, and client 2 sends requests to rate limiter 2. As the web tier is stateless, clients can send requests to a different rate limiter as shown on the right side of Figure 15. If no synchronization happens, rate limiter 1 does not contain any data about client 2. Thus, the rate limiter cannot work properly
   - One possible solution is to use sticky sessions that allow a client to send traffic to the same rate limiter. This solution is not advisable because it is neither scalable nor flexible. A better approach is to use centralized data stores like Redis.
+
+# Design Consistent Hashing
+
+- Consistent hashing is a special kind of hashing such that when a hash table is re-sized and consistent hashing is used, only k/n keys need to be remapped on average, where k is the number of keys, and n is the number of slots. In contrast, in most traditional hash tables, a change in the number of array slots causes nearly all keys to be remapped
+
+- Map servers and keys on to the ring using a uniformly distributed hash function
+- To find out which server a key is mapped to, go clockwise from the key position until the first server on the ring is found.
+
+- The benefits of consistent hashing include
+  - Minimized keys are redistributed when servers are added or removed
+  - It is easy to scale horizontally because data are more evenly distributed
+  - Mitigate hotspot key problem. Excessive access to a specific shard could cause server overload
