@@ -177,3 +177,67 @@
   - Minimized keys are redistributed when servers are added or removed
   - It is easy to scale horizontally because data are more evenly distributed
   - Mitigate hotspot key problem. Excessive access to a specific shard could cause server overload
+
+# Design A Key-value Store
+
+## Data partition
+
+- There are two challenges while partitioning the data
+
+  - Distribute data across multiple servers evenly
+  - Minimize data movement when nodes are added or removed
+
+- Using consistent hashing to partition data has the following advantage
+  - Automatic scaling
+  - Heterogeneity
+
+## Data replication
+
+- To achieve high availability and reliability, data must be replicated asynchronously over N servers
+
+## Consistency models
+
+- Strong consistency
+- Weak consistenc
+- Eventual consistency
+
+## Inconsistency resolution: versioning
+
+- Versioning and vector locks are used to solve inconsistency problems. Versioning means treating each data modification as a new immutable version of data
+
+- Highly available writes
+  - Versioning and conflict resolution with vector clocks
+
+## Handling failures
+
+- Failure detection
+  - all-to-all multicasting is a straightforward solution. However, this is inefficient when many servers are in the system
+  - A better solution is to use decentralized failure detection methods like gossip protocol
+    - Each node maintains a node membership list, which contains member IDs and heartbeat counters
+    - Each node periodically increments its heartbeat counter
+    - Each node periodically sends heartbeats to a set of random nodes, which in turn propagate to another set of nodes
+    - Once nodes receive heartbeats, membership list is updated to the latest info
+
+## System architecture diagram
+
+- Clients communicate with the key-value store through simple APIs: get(key) and put(key, value)
+- A coordinator is a node that acts as a proxy between the client and the key-value store
+- Nodes are distributed on a ring using consistent hashing
+- The system is completely decentralized so adding and moving nodes can be automatic
+- Data is replicated at multiple nodes
+- There is no single point of failure as every node has the same set of responsibilities
+
+## Write path
+
+- The write request is persisted on a commit log file
+- Data is saved in the memory cache
+- When the memory cache is full or reaches a predefined threshold, data is flushed to SSTable on disk
+
+## Read path
+
+- If the data is not in memory, it will be retrieved from the disk instead. We need an efficient way to find out which SSTable contains the key. Bloom filter is commonly used to solve this problem
+- 1. The system first checks if data is in memory. If not, go to step 2
+- 2. If data is not in memory, the system checks the bloom filter
+- 3. If data is not in memory, the system checks the bloom filter.
+- 4. SSTables return the result of the data set
+- 5. The result of the data set is returned to the client
