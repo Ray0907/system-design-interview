@@ -241,3 +241,11 @@
 - 3. If data is not in memory, the system checks the bloom filter.
 - 4. SSTables return the result of the data set
 - 5. The result of the data set is returned to the client
+
+# Design A Unique ID Generator In Distributed Systems
+
+- Multiple options can be used to generate unique IDs in distributed systems
+  - Multi-master replication
+  - Universally unique identifier (UUID)
+  - Ticket server
+  - Twitter snowflake approach
