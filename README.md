@@ -249,3 +249,11 @@
   - Universally unique identifier (UUID)
   - Ticket server
   - Twitter snowflake approach
+
+# Design A URL Shortener
+
+- API design
+- data model
+- hash function
+- URL shortening
+- URL redirecting
