@@ -257,3 +257,16 @@
 - hash function
 - URL shortening
 - URL redirecting
+
+# Design A Web Crawler
+
+- DFS vs BFS
+
+  - DFS is usually not a good choice because the depth of DFS can be very deep
+  - BFS is commonly used by web crawlers and is implemented by a first-in-first-out (FIFO) queue
+
+- Robustness
+  - Consistent hashing
+  - Save crawl states and data
+  - Exception handling
+  - Data validation
