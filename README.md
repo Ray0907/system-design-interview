@@ -270,3 +270,12 @@
   - Save crawl states and data
   - Exception handling
   - Data validation
+
+# Design A Notification System
+
+- high-level design
+  - Reliability
+  - Security
+  - Tracking and monitoring
+  - Respect user settings
+  - Rate limiting
