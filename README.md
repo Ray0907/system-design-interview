@@ -279,3 +279,32 @@
   - Tracking and monitoring
   - Respect user settings
   - Rate limiting
+
+# Design A News Feed System
+
+## Fanout service
+
+- Fanout on write
+  - With this approach, news feed is pre-computed during write time. A new post is delivered to friends’ cache immediately after it is published
+  - Pros
+    - The news feed is generated in real-time and can be pushed to friends immediately
+    - Fetching news feed is fast because the news feed is pre-computed during write time
+  - Cons
+    - If a user has many friends, fetching the friend list and generating news feeds for all of them are slow and time consuming. It is called hotkey problem
+    - For inactive users or those rarely log in, pre-computing news feeds waste computing resources
+- Fanout on read
+  - The news feed is generated during read time. This is an on-demand model. Recent posts are pulled when a user loads her home page
+  - Pros
+    - For inactive users or those who rarely log in, fanout on read works better because it will not waste computing resources on them
+    - Data is not pushed to friends so there is no hotkey problem
+  - Cons
+    - Fetching the news feed is slow as the news feed is not pre-compute
+
+## Cache architecture
+
+- Cache is extremely important for a news feed system. We divide the cache tier into 5 layers
+  - News Feed: It stores IDs of news feeds
+  - Content: It stores every post data. Popular content is stored in hot cache
+  - Social Graph: It stores user relationship data
+  - Action: It stores info about whether a user liked a post, replied a post, or took other actions on a post
+  - Counters: It stores counters for like, reply, follower, following, etc
