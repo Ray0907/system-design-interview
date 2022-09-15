@@ -303,8 +303,18 @@
 ## Cache architecture
 
 - Cache is extremely important for a news feed system. We divide the cache tier into 5 layers
+
   - News Feed: It stores IDs of news feeds
   - Content: It stores every post data. Popular content is stored in hot cache
   - Social Graph: It stores user relationship data
   - Action: It stores info about whether a user liked a post, replied a post, or took other actions on a post
   - Counters: It stores counters for like, reply, follower, following, etc
+
+  # Design A Chat System
+
+  - Storage
+    - Selecting the correct storage system that supports all of our use cases is crucial. We recommend key-value stores for the following reasons
+      - Key-value stores allow easy horizontal scaling
+      - Key-value stores provide very low latency to access data
+      - Relational databases do not handle long tail of data well. When the indexes grow large, random access is expensive
+      - Key-value stores are adopted by other proven reliable chat applications
