@@ -313,8 +313,68 @@
   # Design A Chat System
 
   - Storage
+
     - Selecting the correct storage system that supports all of our use cases is crucial. We recommend key-value stores for the following reasons
       - Key-value stores allow easy horizontal scaling
       - Key-value stores provide very low latency to access data
       - Relational databases do not handle long tail of data well. When the indexes grow large, random access is expensive
       - Key-value stores are adopted by other proven reliable chat applications
+
+    # Design A Search Autocomplete System
+
+    - Trie data structure
+      - Fetching the top 5 search queries from a relational database is inefficient. The data structure trie (prefix tree) is used to overcome the problem.
+      - A trie is a tree-like data structure
+      - The root represents an empty string
+      - Each node stores a character and has 26 children, one for each possible character
+      - Each tree node represents a single word or a prefix string
+    - How does autocomplete work with trie? Before diving into the algorithm, let us define some terms
+      - p: length of a prefix
+      - n: total number of nodes in a trie
+      - c: number of children of a given node
+    - Steps to get top k most searched queries
+      1. Find the prefix. Time complexity: O(p)
+      2. Traverse the subtree from the prefix node to get all valid children. A child is valid if it can form a valid query string. Time complexity: O(c)
+      3. Sort the children and get top k. Time complexity: O(clogc)
+    - It is too slow because we need to traverse the entire trie to get top k results in the worst-case scenario. Below are two optimizations
+
+    1. Limit the max length of a prefix
+    2. Cache top search queries at each node
+
+  ## Data gathering service
+
+  - Aggregated Data
+    - Workers
+      - Workers are a set of servers that perform asynchronous jobs at regular intervals. They build the trie data structure and store it in Trie DB
+    - Trie Cache
+      - rie Cache is a distributed cache system that keeps trie in memory for fast read. It takes a weekly snapshot of the DB
+    - Trie DB
+      - Trie DB is the persistent storage
+        - Document store: Since a new trie is built weekly, we can periodically take a snapshot of it, serialize it, and store the serialized data in the database. Document stores like MongoDB are good fits for serialized data
+        - Key-value store: A trie can be represented in a hash table form by applying the following logic
+          - Every prefix in the trie is mapped to a key in a hash table
+          - Data on each trie node is mapped to a value in a hash table
+
+  ## Query service
+
+  - Query service requires lightning-fast speed. We propose the following optimizations
+    - AJAX request
+      - The main benefit of AJAX is that sending/receiving a request/response does not refresh the whole web page
+    - Browser caching
+    - Data sampling
+      - For a large-scale system, logging every search query requires a lot of processing power and storage. Data sampling is important. For instance, only 1 out of every N requests is logged by the system
+
+  ## Trie operations
+
+  - Create
+    - Trie is created by workers using aggregated data. The source of data is from Analytics Log/DB
+  - Update
+    1. Update the trie weekly. Once a new trie is created, the new trie replaces the old one
+    2. Update individual trie node directly. We try to avoid this operation because it is slow. However, if the size of the trie is small, it is an acceptable solution. When we update a trie node, its ancestors all the way up to the root must be updated because ancestors store top queries of children
+  - Delete
+
+    - We have to remove hateful, violent, sexually explicit, or dangerous autocomplete suggestions. We add a filter layer (Figure 14) in front of the Trie Cache to filter out unwanted suggestions. Having a filter layer gives us the flexibility of removing results based on different filter rules. Unwanted suggestions are removed physically from the database asynchronically so the correct data set will be used to build trie in the next update cycle
+
+  - Building a real-time search autocomplete is complicated and is beyond the scope of this course so we will only give a few ideas
+    - Reduce the working data set by sharding
+    - Change the ranking model and assign more weight to recent search queries
