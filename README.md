@@ -378,3 +378,94 @@
   - Building a real-time search autocomplete is complicated and is beyond the scope of this course so we will only give a few ideas
     - Reduce the working data set by sharding
     - Change the ranking model and assign more weight to recent search queries
+
+# Design YouTube
+
+## Video streaming flow
+
+- streaming protocol
+
+  - MPEG–DASH. MPEG stands for **_Moving Picture Experts Group_** and DASH stands for **_Dynamic Adaptive Streaming over HTTP_**
+
+  - Apple HLS. HLS stands for **_HTTP Live Streaming_**
+  - Microsoft Smooth Streaming
+  - Adobe HTTP Dynamic Streaming (HDS)
+
+## Video transcoding
+
+- Video transcoding is important for the following reasons
+  - Raw video consumes large amounts of storage space. An hour-long high definition video recorded at 60 frames per second can take up a few hundred GB of space
+  - Many devices and browsers only support certain types of video formats. Thus, it is important to encode a video to different formats for compatibility reasons
+  - To ensure users watch high-quality videos while maintaining smooth playback, it is a good idea to deliver higher resolution video to users who have high network bandwidth and lower resolution video to users who have low bandwidth
+  - Network conditions can change, especially on mobile devices. To ensure a video is played continuously, switching video quality automatically or manually based on network conditions is essential for smooth user experience
+- Many types of encoding formats are available; however, most of them contain two parts
+  - Container
+    - This is like a basket that contains the video file, audio, and metadata. You can tell the container format by the file extension, such as .avi, .mov, or .mp4
+  - Codecs
+    - These are compression and decompression algorithms aim to reduce the video size while preserving the video quality. The most used video codecs are H.264, VP9, and HEVC
+
+## Directed acyclic graph (DAG) model
+
+- To support different video processing pipelines and maintain high parallelism, it is important to add some level of abstraction and let client programmers define what tasks to execute. For example, Facebook’s streaming video engine uses a directed acyclic graph (DAG) programming model, which defines tasks in stages so they can be executed sequentially or parallelly
+
+## Video transcoding architecture
+
+- Preprocessor
+  - The preprocessor has 4 responsibilities
+  1. Video splitting. Video stream is split or further split into smaller Group of Pictures (GOP) alignment. GOP is a group/chunk of frames arranged in a specific order. Each chunk is an independently playable unit, usually a few seconds in length
+  2. Some old mobile devices or browsers might not support video splitting. Preprocessor split videos by GOP alignment for old clients
+  3. DAG generation
+  4. Cache data
+- DAG scheduler
+
+  - The DAG scheduler splits a DAG graph into stages of tasks and puts them in the task queue in the resource manager
+
+- Resource manager
+  - The resource manager is responsible for managing the efficiency of resource allocation. It contains 3 queues and a task scheduler
+    - Task queue: It is a priority queue that contains tasks to be executed
+    - Worker queue: It is a priority queue that contains worker utilization info
+    - Running queue: It contains info about the currently running tasks and workers running the tasks
+  - Task scheduler: It picks the optimal task/worker, and instructs the chosen task worker to execute the job
+  - The resource manager works as follows
+    - The task scheduler gets the highest priority task from the task queue
+    - The task scheduler gets the optimal task worker to run the task from the worker queue
+    - The task scheduler instructs the chosen task worker to run the task
+    - The task scheduler binds the task/worker info and puts it in the running queue
+    - The task scheduler removes the job from the running queue once the job is done
+- Task workers
+  - Task workers run the tasks which are defined in the DAG
+- Temporary storage
+- Encoded video
+  - Encoded video is the final output of the encoding pipeline
+
+## System optimizations
+
+- Speed optimization
+
+  - parallelize video uploading
+    - The job of splitting a video file by GOP can be implemented by the client to improve the upload speed
+  - place upload centers close to users
+  - parallelism everywhere
+    - Before the message queue is introduced, the encoding module must wait for the output of the download module
+    - After the message queue is introduced, the encoding module does not need to wait for the output of the download module anymore. If there are events in the message queue, the encoding module can execute those jobs in parallel
+
+- Safety optimization
+  - pre-signed upload URL
+    - The client makes a HTTP request to API servers to fetch the pre-signed URL, which gives the access permission to the object identified in the URL. The term pre-signed URL is used by uploading files to Amazon S3. Other cloud service providers might use a different name. For instance, Microsoft Azure blob storage supports the same feature, but call it **_Shared Access Signature_**
+    - API servers respond with a pre-signed URL
+    - Once the client receives the response, it uploads the video using the pre-signed URL
+  - protect your videos
+    - Digital rights management (DRM) systems
+    - AES encryption
+    - Visual watermarking
+- Cost-saving optimization
+  - Only serve the most popular videos from CDN and other videos from our high capacity storage video servers
+  - For less popular content, we may not need to store many encoded video versions. Short videos can be encoded on-demand
+  - Some videos are popular only in certain regions. There is no need to distribute these videos to other regions
+  - Build your own CDN like Netflix and partner with Internet Service Providers (ISPs). Building your CDN is a giant project; however, this could make sense for large streaming companies. An ISP can be Comcast, AT&T, Verizon, or other internet providers. ISPs are located all around the world and are close to users. By partnering with ISPs, you can improve the viewing experience and reduce the bandwidth charges
+
+## Error handling
+
+- To build a highly fault-tolerant system, we must handle errors gracefully and recover from them fast. Two types of errors exist
+  - Recoverable error. For recoverable errors such as video segment fails to transcode, the general idea is to retry the operation a few times. If the task continues to fail and the system believes it is not recoverable, it returns a proper error code to the client
+  - Non-recoverable error. For non-recoverable errors such as malformed video format, the system stops the running tasks associated with the video and returns the proper error code to the client
