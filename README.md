@@ -469,3 +469,14 @@
 - To build a highly fault-tolerant system, we must handle errors gracefully and recover from them fast. Two types of errors exist
   - Recoverable error. For recoverable errors such as video segment fails to transcode, the general idea is to retry the operation a few times. If the task continues to fail and the system believes it is not recoverable, it returns a proper error code to the client
   - Non-recoverable error. For non-recoverable errors such as malformed video format, the system stops the running tasks associated with the video and returns the proper error code to the client
+
+# Design Google Drive
+
+## Save storage space
+
+- Storage space can be filled up quickly with frequent backups of all file revisions. Three techniques are proposed to reduce storage costs
+  - De-duplicate data blocks. Eliminating redundant blocks at the account level is an easy way to save space. Two blocks are identical if they have the same hash value
+  - Adopt an intelligent data backup strategy. Two optimization strategies can be applied
+    - Set a limit
+    - Keep valuable versions only
+    - Moving infrequently used data to cold storage
