@@ -480,3 +480,54 @@
     - Set a limit
     - Keep valuable versions only
     - Moving infrequently used data to cold storage
+
+# Proximity Service
+
+- The system comprises two parts
+  - Location-based service (LBS)
+    - The LBS service is the core part of the system which finds nearby businesses for a given radius and location
+      - It is a read-heavy service with no write requests
+      - QPS is high, especially during peak hours in dense areas
+      - This service is stateless so it’s easy to scale horizontally
+  - Business service
+    - Business owners create, update, or delete businesses. Those requests are mainly write operations, and the QPS is not high
+    - Customers view detailed information about a business. QPS is high during peak hours
+
+## Algorithms to fetch nearby businesses
+
+- Two-dimensional search
+  - Hash: even grid, geohash, cartesian tiers , etc.
+  - Tree: quadtree, Google S2, RTree , etc
+  - geohash, quadtree, and Google S2 are most widely used in real-world applications
+- Evenly divided grid
+- Geohash
+  - Geohash is better than the evenly divided grid option. It works by reducing the two-dimensional longitude and latitude data into a one-dimensional string of letters and digits. Geohash algorithms work by recursively dividing the world into smaller and smaller grids with each additional bit
+- Quadtree
+  - A quadtree is a data structure that is commonly used to partition a two-dimensional space by recursively subdividing it into four quadrants (grids) until the contents of the grids meet certain criteria
+  - quadtree is an in-memory data structure and it is not a database solution.
+- Google S2
+
+  - it is an in-memory solution. It maps a sphere to a 1D index based on the Hilbert curve (a space-filling curve)
+  - S2 is great for geofencing because it can cover arbitrary areas with varying levels (Figure 17). According to Wikipedia, **_A geofence is a virtual perimeter for a real-world geographic area. A geo-fence could be dynamically generated—as in a radius around a point location, or a geo-fence can be a predefined set of boundaries (such as school zones or neighborhood boundaries)_**
+  - Another advantage of S2 is its Region Cover algorithm . Instead of having a fixed level (precision) as in geohash, we can specify min level, max level, and max cells in S2
+
+- Geohash vs quadtree
+  - Geohash
+    - Easy to use and implement. No need to build a tree
+    - Supports returning businesses within a specified radius
+    - When the precision (level) of geohash is fixed, the size of the grid is fixed as well. It cannot dynamically adjust the grid size, based on population density. More complex logic is needed to support this
+    - Updating the index is easy. For example, to remove a business from the index, we just need to remove it from the corresponding row with the same geohash and business_id
+  - Quadtree
+    - Slightly harder to implement because it needs to build the tree
+    - Supports fetching k-nearest businesses
+    - Updating the index is more complicated than geohash
+
+## Scale the database
+
+- Business table
+  - The easiest approach is to shard everything by business ID
+- Geospatial index table
+  - Option 1: For each geohash key, there is a JSON array of business IDs in a single row This means all business IDs within a geohash are stored in one row
+  - Option 2: If there are multiple businesses in the same geohash, there will be multiple rows, one for each business. This means different business IDs within a geohash are stored in different rows
+  - Recommendation: Option2
+    - if we have two columns with a compound key of (geohash, business_id), the addition and removal of a business are very simple. There would be no need to lock anything
