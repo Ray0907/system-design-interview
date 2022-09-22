@@ -531,3 +531,11 @@
   - Option 2: If there are multiple businesses in the same geohash, there will be multiple rows, one for each business. This means different business IDs within a geohash are stored in different rows
   - Recommendation: Option2
     - if we have two columns with a compound key of (geohash, business_id), the addition and removal of a business are very simple. There would be no need to lock anything
+
+# Nearby Friends
+
+- WebSocket: real-time communication between clients and the server
+- Redis: fast read and write of location data
+- Redis pub/sub: routing layer to direct location updates from one user to all the online friends
+- Alternative to Redis pub/sub
+  - Erlang
