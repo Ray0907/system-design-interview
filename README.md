@@ -539,3 +539,9 @@
 - Redis pub/sub: routing layer to direct location updates from one user to all the online friends
 - Alternative to Redis pub/sub
   - Erlang
+
+# Google Maps
+
+- Location service
+- Navigation service
+- Map rendering
