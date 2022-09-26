@@ -545,3 +545,23 @@
 - Location service
 - Navigation service
 - Map rendering
+
+# Distributed Message Queue
+
+- What benefits do message queues bring
+
+  - Decoupling
+    - Message queues eliminate the tight coupling between components so they can be updated independently.
+  - Improved scalability
+    - We can scale producers and consumers independently based on traffic load. For example, during peak hours, more consumers can be added to handle the increased traffic
+  - Increased availability
+    - If one part of the system goes offline, the other components can continue to interact with the queue
+  - Better performance
+    - Message queues make asynchronous communication easy. Producers can add messages to a queue without waiting for the response and consumers consume messages whenever they are available. They don’t need to wait for each other
+  - Message queues vs event streaming platforms
+
+- the basic functionalities of a message queue
+  - Producer sends messages to a message queue
+  - Consumer subscribes to a queue and consumes the subscribed messages
+  - Message queue is a service in the middle that decouples the producers from the consumers, allowing each of them to operate and scale independently
+  - Both producer and consumer are clients in the client/server model, while the message queue is the server. The clients and servers communicate over the network
