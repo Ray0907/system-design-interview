@@ -565,3 +565,24 @@
   - Consumer subscribes to a queue and consumes the subscribed messages
   - Message queue is a service in the middle that decouples the producers from the consumers, allowing each of them to operate and scale independently
   - Both producer and consumer are clients in the client/server model, while the message queue is the server. The clients and servers communicate over the network
+
+# Metrics Monitoring and Alerting System
+
+- A metrics monitoring and alerting system generally contains five components
+
+  - Data collection
+    - collect metric data from different sources
+  - Data transmission
+    - transfer data from sources to the metrics monitoring system
+  - Data storage
+    - organize and store incoming data
+  - Alerting
+    - analyze incoming data, detect anomalies, and generate alerts. The system must be able to send alerts to different communication channels
+  - Visualization
+    - present data in graphs, charts, etc. Engineers are better at identifying patterns, trends, or problems when data is presented visually, so we need visualization functionality
+
+- According to DB-engines , the two most popular time-series databases are **_InfluxDB_** and **_Prometheus_**, which are designed to store large volumes of time-series data and quickly perform real-time analysis on that data. Both of them primarily rely on an in-memory cache and on-disk storage
+
+## Metrics collection
+
+- Pull vs push models
