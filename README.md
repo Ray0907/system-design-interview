@@ -586,3 +586,15 @@
 ## Metrics collection
 
 - Pull vs push models
+
+# Ad Click Event Aggregation
+
+## Aggregation service
+
+- The MapReduce framework is a good option to aggregate ad click events.The directed acyclic graph (DAG) is a good model for it
+- The DAG model represents the well-known MapReduce paradigm. It is designed to take big data and use parallel distributed computing to turn big data into little- or regular-sized data
+
+## Kappa architecture V.S lambda architecture
+
+- A disadvantage of lambda architecture is that you have two processing paths, meaning there are two codebases to maintain
+- Kappa architecture, which combines the batch and streaming in one processing path, solves the problem. The key idea is to handle both real-time data processing and continuous data reprocessing using a single stream processing engine
