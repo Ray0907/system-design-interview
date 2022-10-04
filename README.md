@@ -598,3 +598,53 @@
 
 - A disadvantage of lambda architecture is that you have two processing paths, meaning there are two codebases to maintain
 - Kappa architecture, which combines the batch and streaming in one processing path, solves the problem. The key idea is to handle both real-time data processing and continuous data reprocessing using a single stream processing engine
+
+# Hotel Reservation System
+
+- Race conditions issue
+
+  - Pessimistic locking
+    - prevents simultaneous updates by placing a lock on a record as soon as one user starts to update it. Other users who attempt to update the record have to wait until the first user has released the lock
+    - Pros
+      - Prevents applications from updating data that is being – or has been – changed
+      - It is easy to implement and it avoids conflict by serializing updates. Pessimistic locking is useful when data contention is heavy
+    - Cons
+      - Deadlocks may occur when multiple resources are locked. Writing deadlock-free application code could be challenging
+      - This approach is not scalable. If a transaction is locked for too long, other transactions cannot access the resource. This has a significant impact on database performance, especially when transactions are long-lived or involve a lot of entities
+  - Optimistic locking
+
+    - allows multiple concurrent users to attempt to update the same resource
+    - Optimistic locking is usually faster than pessimistic locking because we do not lock the database. However, the performance of optimistic locking drops dramatically when concurrency is high
+    - Pros
+
+      - It prevents applications from editing stale data
+      - We don’t need to lock the database resource. There's actually no locking from the database point of view. It's entirely up to the application to handle the logic with the version number
+      - Optimistic locking is generally used when the data contention is low. When conflicts are rare, transactions can complete without the expense of managing locks
+
+    - Cons
+      - Performance is poor when data contention is heavy
+
+  - Database constraints
+    - Pros
+      - Easy to implement
+      - It works well when data contention is minimal
+    - Cons
+      - Similar to optimistic locking, when data contention is heavy, it can result in a high volume of failures. Users could see there are rooms available, but when they try to book one, they get the “no rooms available” response. This experience can be frustrating to users
+      - The database constraints cannot be version-controlled easily like the application code
+      - Not all databases support constraints. It might cause problems when we migrate from one database solution to another
+
+## Scalability
+
+- Database sharding
+- Caching
+  - Pros
+    - Reduced database load. Since read queries are answered by the cache layer, database load is significantly reduced
+    - High performance. Read queries are very fast because results are fetched from memory
+  - Cons
+    - Maintaining data consistency between the database and cache is hard. We need to think carefully about how this inconsistency affects user experience
+
+## Data consistency among services
+
+- To address the data inconsistency, here is a high-level summary of industry-proven techniques
+  - Two-phase commit (2PC) . 2PC is a database protocol used to guarantee atomic transaction commit across multiple nodes, i.e., either all nodes succeeded or all nodes failed. Because 2PC is a blocking protocol, a single node failure blocks the progress until the node has recovered. It’s not performant
+  - Saga. A saga is a sequence of local transactions. Each transaction updates and publishes a message to trigger the next transaction step. If a step fails, the saga executes compensating transactions to undo the changes that were made by preceding transactions. 2PC works as a single commit to perform ACID transactions while Saga consists of multiple steps and relies on eventual consistency
