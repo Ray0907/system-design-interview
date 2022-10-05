@@ -648,3 +648,16 @@
 - To address the data inconsistency, here is a high-level summary of industry-proven techniques
   - Two-phase commit (2PC) . 2PC is a database protocol used to guarantee atomic transaction commit across multiple nodes, i.e., either all nodes succeeded or all nodes failed. Because 2PC is a blocking protocol, a single node failure blocks the progress until the node has recovered. It’s not performant
   - Saga. A saga is a sequence of local transactions. Each transaction updates and publishes a message to trigger the next transaction step. If a step fails, the saga executes compensating transactions to undo the changes that were made by preceding transactions. 2PC works as a single commit to perform ACID transactions while Saga consists of multiple steps and relies on eventual consistency
+
+# Distributed Email Service
+
+- Email protocols
+  - SMTP
+
+## Choosing the right database
+
+- A single column can be a single-digit of MB
+- Strong data consistency
+- Designed to reduce disk I/O
+- It should be highly available and fault-tolerant
+- It should be easy to create incremental backups
