@@ -661,3 +661,9 @@
 - Designed to reduce disk I/O
 - It should be highly available and fault-tolerant
 - It should be easy to create incremental backups
+
+# S3-like Object Storage
+
+- Uploading an object
+- Downloading an object
+- Object versioning and listing objects in a bucket
