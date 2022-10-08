@@ -667,3 +667,25 @@
 - Uploading an object
 - Downloading an object
 - Object versioning and listing objects in a bucket
+
+# Real-time Gaming Leaderboard
+
+## Redis solution
+
+- redis has a specific data type called sorted sets that are ideal for solving leaderboard system design problems
+  - a sorted set is implemented by two data structures
+    - hash table
+    - skip list
+
+### Implementation using Redis sorted sets
+
+- ZADD: insert the user into the set if they don’t yet exist. Otherwise, update the score for the user. It takes O(log(n)) to execute
+- ZINCRBY: increment the score of the user by the specified increment. If the user doesn’t exist in the set, then it assumes the score starts at 0. It takes O(log(n)) to execute
+- ZRANGE/ZREVRANGE: fetch a range of users sorted by the score. We can specify the order (range vs. revrange), the number of entries, and the position to start from. This takes O(log(n)+m) to execute, where m is the number of entries to fetch (which is usually small in our case), and n is the number of entries in the sorted set
+- ZRANK/ZREVRANK: Fetch the position of any user sorting in ascending/descending order in logarithmic time
+
+## Alternative solution: NoSQL
+
+- Ideally, we want to choose a NoSQL that has the following properties
+  - Optimized for writes
+  - Efficiently sort items within the same partition by score
