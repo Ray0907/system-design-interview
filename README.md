@@ -689,3 +689,5 @@
 - Ideally, we want to choose a NoSQL that has the following properties
   - Optimized for writes
   - Efficiently sort items within the same partition by score
+
+# Payment System
