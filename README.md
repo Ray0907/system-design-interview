@@ -691,3 +691,24 @@
   - Efficiently sort items within the same partition by score
 
 # Payment System
+
+# Digital Wallet
+
+## Distributed transaction: two-phase commit
+
+## Distributed transaction: Try-Confirm/Cancel
+
+- TC/C is a type of compensating transaction that has two steps
+
+  1. In the first phase, the coordinator asks all databases to reserve resources for the transaction
+  2. In the second phase, the coordinator collects replies from all databases
+
+     - If all databases reply with "yes", the coordinator asks all databases to confirm the operation, which is the Try-Confirm process.
+
+     - If any database replies with "no", the coordinator asks all databases to cancel the operation, which is the Try-Cancel process
+
+## Distributed transaction: Saga
+
+- Saga is the de-facto standard in a microservice architecture. The idea of Saga is simple:
+  - All operations are ordered in a sequence. Each operation is an independent transaction on its own database
+  - Operations are executed from the first to the last. When one operation has finished, the next operation is triggered
