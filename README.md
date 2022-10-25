@@ -712,3 +712,5 @@
 - Saga is the de-facto standard in a microservice architecture. The idea of Saga is simple:
   - All operations are ordered in a sequence. Each operation is an independent transaction on its own database
   - Operations are executed from the first to the last. When one operation has finished, the next operation is triggered
+
+# Stock Exchange
